@@ -1,6 +1,8 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+import time
+
 
 load_dotenv()
 
@@ -14,12 +16,13 @@ def chat_with_ai():
     messages = [
         {
             "role": "system",
-            "content": "A senior software engineer specialize in teaching",
+            "content": "You are a senior software engineer. Provide complete working code when requested. Explain important parts briefly."
         },
         
     ]
+
     while True:
-        prompt = input("Enter your Question: ").strip()
+        prompt = input("\nEnter your Question: ").strip()
 
         if prompt.lower() == "q" or prompt.lower() == "quit":
             break
@@ -27,30 +30,41 @@ def chat_with_ai():
             "role": "user",
             "content": prompt
         }
+
         messages.append(user_prompt)
+
+        print("\nAI:")
 
         response = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=messages,
 
-            temperature=0.2,
-            max_tokens=1000
+            temperature=1.7,
+            max_tokens=3000,
+            stream=True
         )
 
-        answer = response.choices[0].message.content
-
-        ai_response = {
+        answer = ""
+                
+        
+        for chunk in response:
+            
+            if chunk.choices[0].delta.content:
+                text = chunk.choices[0].delta.content
+                print(text, end="", flush=True)
+                answer += text
+                time.sleep(0.05)
+        if answer:
+            ai_response = {
             "role": "assistant",
             "content": answer
-        }
+            }
 
-        messages.append(ai_response)
+            messages.append(ai_response)
 
-        print("\nAI:")
-        print(answer)
-        with open("response.txt", "a") as file:
-            file.write(f"\n\nUser: {prompt}\n")
-            file.write(f"AI: {answer}\n")
+            with open("response.txt", "a") as file:
+                file.write(f"\n\nUser: {prompt}\n")
+                file.write(f"AI: {answer}\n")
     print("Good bye")
 
 chat_with_ai()
