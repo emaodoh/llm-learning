@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 import time
+from model import select_model
 
 
 load_dotenv()
@@ -11,8 +12,11 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
+
+
+
 def chat_with_ai():
-    print("Enter q to quit")
+    print("Enter q to quit and x to change model")
     messages = [
         {
             "role": "system",
@@ -31,16 +35,24 @@ def chat_with_ai():
             "content": prompt
         }
 
+        model="openai/gpt-oss-20b"
+
+        if prompt.lower() == "x":
+            model = select_model()
+            continue
+
+
         messages.append(user_prompt)
 
         print("\nAI:")
 
+
         response = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model=model,
             messages=messages,
 
             temperature=1.7,
-            max_tokens=3000,
+            max_tokens=1500,
             stream=True
         )
 
